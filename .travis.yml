@@ -1,1 +1,5 @@
 language: java
+<<<<<<< HEAD
+=======
+script: ant compile
+>>>>>>> origin/master
