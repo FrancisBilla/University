@@ -1,29 +1,51 @@
 
-<project name="University" default="dist" basedir=".">
-    <description>
-        simple example build file
-    </description>
-    <!-- set global properties for this build -->
-    <property name="src" location="src"/>
-    <property name="build" location="build"/>
-    <property name="dist" location="dist"/>
+<project>
+
+    <property name="output.dir" value="${basedir}/build"/>
+    <property name="src.test.dir" value="${basedir}/src/test"/>
+    <property name="build.classes.dir" value="${output.dir}/classes"/>
 
     <target name="init">
-        <!-- Create the time stamp -->
-        <tstamp/>
-        <!-- Create the build directory structure used by compile -->
-        <mkdir dir="${build}"/>
+        <mkdir dir="${output.dir}"/>
     </target>
 
-    <target name="compile" depends="init"
-            description="compile the source">
-        <!-- Compile the Java code from ${src} into ${build} -->
-        <javac srcdir="${src}" destdir="${build}"/>
+    <path id="junit.platform.libs.classpath">
+        <fileset dir="${basedir}/src/lib/junit-platform/"/>
+    </path>
+
+    <path id="junit.engine.jupiter.classpath">
+        <fileset dir="${basedir}/src/lib/jupiter/"/>
+    </path>
+
+    <target name="compile-test" depends="init">
+        <mkdir dir="${build.classes.dir}"/>
+        <javac srcdir="${src.test.dir}"
+           destdir="${build.classes.dir}">
+           <!-- our tests only need JUnit Jupiter engine
+           libraries in our compile classpath for the tests -->
+           <classpath refid="junit.engine.jupiter.classpath"/>
+        </javac>
     </target>
 
-    <target name="clean"
-            description="clean up">
-        <!-- Delete the ${build} and ${dist} directory trees -->
-        <delete dir="${build}"/>
-        <delete dir="${dist}"/>
+    <target name="test" depends="compile-test">
+        <junitlauncher>
+            <!-- include the JUnit platform related libraries
+            required to run the tests -->
+            <classpath refid="junit.platform.libs.classpath"/>
+
+            <!-- include the JUnit Jupiter engine libraries -->
+            <classpath refid="junit.engine.jupiter.classpath"/>
+
+            <classpath>
+                <!-- the test classes themselves -->
+                <pathelement location="${build.classes.dir}"/>
+            </classpath>
+            <testclasses outputdir="${output.dir}">
+                <fileset dir="${build.classes.dir}"/>
+                <listener type="legacy-brief" sendSysOut="true"/>
+                <listener type="legacy-xml" sendSysErr="true" sendSysOut="true"/>
+
+            </testclasses>
+        </junitlauncher>
     </target>
+</project>
